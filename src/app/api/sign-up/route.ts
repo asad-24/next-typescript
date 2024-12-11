@@ -1,4 +1,4 @@
-import dbConnect from "@/lib/dpConnect";
+import dbConnect from "@/lib/dbConnect";
 
 import UserModel from "@/models/user";
 

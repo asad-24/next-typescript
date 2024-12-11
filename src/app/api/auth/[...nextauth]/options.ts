@@ -1,7 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import dbConnect from "@/lib/dpConnect";
+import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/models/user";
 import { error } from 'console';
 
@@ -51,13 +51,23 @@ export const authOptions: NextAuthOptions = {
   callbacks:{
 
     async session({ session,  token }) {
+        if(token){
+            session.user._id=token._id;
+            session.user.isAcceptingMesage=token.isAcceptingMesage;
+            session.user.isVerified=token.isVerified;
+            session.user.userName=token.userName;
+
+        }
         return session
       },
       async jwt({ token, user,  }) {
 
-        if(!user){
-            token._id= user._id.toString();
-                }
+        if(user){
+            token._id= user._id?.toString();
+            token.isVerified= user.isVerified;
+            token.isAcceptingMessage=user.isAcceptingMesage;
+            token.userName= user.userName
+                        }
         return token
 
 

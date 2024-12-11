@@ -1,9 +1,13 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 import { ApiResponse } from '@/types/ApiREsponse';
 import VerificationEmail from '../../emails/VarificationEmails';
+import { Resend } from 'resend';
+import dotenv from 'dotenv';
+
+dotenv.config(); // Load environment variables from .env
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+
 
 export async function sendVerificationEmail(
     verifyCode:string,
