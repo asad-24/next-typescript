@@ -1,84 +1,74 @@
-import { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import dbConnect from "@/lib/dbConnect";
-import UserModel from "@/models/user";
-import { error } from 'console';
+import { NextAuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import bcrypt from 'bcryptjs';
+import dbConnect from '@/lib/dbConnect';
+import UserModel from '@/models/user';
 
-// Define the authentication options
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      id: "credentials",
-      name: "Credentials",
+      id: 'credentials',
+      name: 'Credentials',
       credentials: {
-        email: { label: "email", type: "text" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials:any):Promise<any> {
-
+      async authorize(credentials: any): Promise<any> {
         await dbConnect();
-        try{
-          const user=  await UserModel.findOne({
-                $or:[
-                    {email:credentials.identifier},
-                    {userName:credentials.identifier}
-                ]
-            })
-
-            if(!user){
-                throw new Error("no user found with this email")
-            }
-            if(!user.isVarified){
-                throw new Error("please verify user acount first")
-            }
-
-           const isCorrectPassword= await bcrypt.compare(credentials.password, user.password);
-           if(isCorrectPassword){
-            return user
-           }
-           else{
-            throw new Error("your password is  incorrect")
-           }
-        }catch(err:any){
-
-            throw new Error(err)
+        try {
+          const user = await UserModel.findOne({
+            $or: [
+              { email: credentials.identifier },
+              { username: credentials.identifier },
+            ],
+          });
+          if (!user) {
+            throw new Error('No user found with this email');
+          }
+  if (!user.isVarified) {
+            throw new Error('Please verify your account before logging in');
+          }
+          const isPasswordCorrect = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+          if (isPasswordCorrect) {
+            return user;
+          } else {
+            throw new Error('Incorrect password');
+          }
+        } catch (err: any) {
+          throw new Error(err);
         }
-
-      }
+      },
     }),
   ],
-  callbacks:{
-
-    async session({ session,  token }) {
-        if(token){
-            session.user._id=token._id;
-            session.user.isAcceptingMesage=token.isAcceptingMesage;
-            session.user.isVerified=token.isVerified;
-            session.user.userName=token.userName;
-
-        }
-        return session
-      },
-      async jwt({ token, user,  }) {
-
-        if(user){
-            token._id= user._id?.toString();
-            token.isVerified= user.isVerified;
-            token.isAcceptingMessage=user.isAcceptingMesage;
-            token.userName= user.userName
-                        }
-        return token
-
-
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token._id = user._id?.toString(); // Convert ObjectId to string
+        token.isVerified = user.isVerified;
+        token.isAcceptingMessages = user.isAcceptingMesage
+        token.username = user.userName;
       }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user._id = token._id;
+        session.user.isVerified = token.isVerified;
+        session.user.isAcceptingMesage = token.isAcceptingMesage;
+        session.user.userName = token.userName;
+      }
+      return session;
+    },
   },
-
-  pages:{
+  session: {
+    strategy: 'jwt',
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+  pages: {
     signIn: '/sign-in',
   },
-  session:{
-    strategy:"jwt"
-  },
-  secret: process.env.NEXTAUTH_SECRET
 };
