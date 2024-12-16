@@ -9,18 +9,18 @@ export async function POST(request: Request) {
   await dbConnect();
 
   try {
-    const { userName, email, password } = await request.json();
+    const { username, email, password } = await request.json();
 
-    const existingVerifiedUserByuserName = await UserModel.findOne({
-      userName,
+    const existingVerifiedUserByusername = await UserModel.findOne({
+      username,
       isVerified: true,
     });
 
-    if (existingVerifiedUserByuserName) {
+    if (existingVerifiedUserByusername) {
       return Response.json(
         {
           success: false,
-          message: 'userName is already taken',
+          message: 'username is already taken',
         },
         { status: 400 }
       );
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       expiryDate.setHours(expiryDate.getHours() + 1);
 
       const newUser = new UserModel({
-        userName,
+        username,
         email,
         password: hashedPassword,
         verifyCode,
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     // Send verification email
     const emailResponse = await sendVerificationEmail(
       email,
-      userName,
+      username,
       verifyCode
     );
     if (!emailResponse.success) {

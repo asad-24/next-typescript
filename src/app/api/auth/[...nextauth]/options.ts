@@ -50,7 +50,7 @@ export const authOptions: NextAuthOptions = {
         token._id = user._id?.toString(); // Convert ObjectId to string
         token.isVerified = user.isVerified;
         token.isAcceptingMessages = user.isAcceptingMesage
-        token.username = user.userName;
+        token.username = user.username;
       }
       return token;
     },
@@ -59,7 +59,7 @@ export const authOptions: NextAuthOptions = {
         session.user._id = token._id;
         session.user.isVerified = token.isVerified;
         session.user.isAcceptingMesage = token.isAcceptingMesage;
-        session.user.userName = token.userName;
+        session.user.username = token.username;
       }
       return session;
     },
